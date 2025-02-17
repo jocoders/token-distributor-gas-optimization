@@ -1,6 +1,7 @@
 # Compiler files
 cache/
 out/
+lib/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -12,3 +13,14 @@ docs/
 
 # Dotenv file
 .env
+
+# History
+.history
+
+#GitHub
+.github
+
+# IntelliJ IDEA
+.idea
+
+.DS_Store
