@@ -1,66 +1,57 @@
-## Foundry
+# Gas Optimization Audit Report - TokenVesting
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
 
-Foundry consists of:
+- **Contract Audited:** TokenVesting.sol & TokenVestingOptimized.sol
+- **Optimization Techniques Used:** Solady library, storage optimization, function unification, constant storage references
+- **Audit Focus:** Reducing gas costs for deployment and function execution
+- **Findings Summary:**
+  - **Deployment Gas Reduced:** 1,251,225 -> 1,248,551 (↓ 0.2%)
+  - **Deployment Size Reduced:** 6,797 -> 6,766 (↓ 0.5%)
+  - **Gas Savings on Function Calls:** Small improvements across multiple functions
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Optimizations & Gas Savings
 
-## Documentation
+### 1️⃣ Replaced OpenZeppelin with Solady for `Ownable` & `SafeTransferLib`
 
-https://book.getfoundry.sh/
+- **Before:** Used OpenZeppelin’s `Ownable` and `SafeTransfer`.
+- **After:** Replaced with Solady’s optimized versions.
+- **Gas Improvement:** Solady’s functions are more gas-efficient, reducing overhead for ownership and transfers.
 
-## Usage
+### 2️⃣ Packed `beneficiary` and `revocable` into a Single Storage Slot
 
-### Build
+- **Before:** Stored `beneficiary` (address) and `revocable` (bool) separately.
+- **After:** Combined them into a single slot to reduce storage operations.
+- **Gas Improvement:** Reduced SLOAD costs by storing them together.
 
-```shell
-$ forge build
-```
+### 3️⃣ Unified `_releasableAmount` and `_vestedAmount` Functions
 
-### Test
+- **Before:** Had two separate functions performing similar calculations.
+- **After:** Merged them into a single function to reduce redundant calls.
+- **Gas Improvement:** Saves function execution gas by avoiding duplicated logic.
 
-```shell
-$ forge test
-```
+### 4️⃣ Used Constant Storage References in `_releasableAmount`
 
-### Format
+- **Before:** Accessed the same storage variables multiple times in `_releasableAmount`.
+- **After:** Stored them in memory once and reused them.
+- **Gas Improvement:** Reduces redundant SLOAD operations, making calculations cheaper.
 
-```shell
-$ forge fmt
-```
+## 📊 Gas Usage Comparison (Before vs After)
 
-### Gas Snapshots
+| Function Name       | Before (Avg) | After (Avg) | Improvement |
+| ------------------- | ------------ | ----------- | ----------- |
+| **Deployment Cost** | 1,251,225    | 1,248,551   | **↓ 0.2%**  |
+| **Deployment Size** | 6,797        | 6,766       | **↓ 0.5%**  |
+| `emergencyRevoke`   | 63,780       | 62,563      | **↓ 1.9%**  |
+| `getReleased`       | 1,873        | 1,851       | ↓ 1.2%      |
+| `getRevoked`        | 2,892        | 2,959       | ↑ 2.3%      |
+| `release`           | 93,996       | 92,555      | **↓ 1.5%**  |
+| `revoke`            | 75,909       | 74,294      | **↓ 2.1%**  |
 
-```shell
-$ forge snapshot
-```
+## ✅ Conclusion
 
-### Anvil
+- **Achieved small gas savings on function executions, particularly `emergencyRevoke` (-1.9%) and `revoke` (-2.1%).**
+- **Minor reduction in deployment cost (-0.2%) and contract size (-0.5%).**
+- **Most optimizations came from reducing redundant logic and storage operations.**
 
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+These changes make `TokenVestingOptimized.sol` slightly more efficient, reducing execution gas and storage costs.

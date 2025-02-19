@@ -5,7 +5,6 @@ import {ReentrancyGuard} from "./ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ILooksRareToken} from "../interfaces/ILookRareToken.sol";
-import {Test, console} from "forge-std/Test.sol";
 
 /**
  * @title TokenDistributor
@@ -103,9 +102,6 @@ contract TokenDistributor is ReentrancyGuard {
         // 1. Operational checks for supply
         uint256 nonCirculatingSupply =
             ILooksRareToken(_looksRareToken).SUPPLY_CAP() - ILooksRareToken(_looksRareToken).totalSupply();
-
-        console.log("ILooksRareToken(_looksRareToken).SUPPLY_CAP()", ILooksRareToken(_looksRareToken).SUPPLY_CAP());
-        console.log("ILooksRareToken(_looksRareToken).totalSupply()", ILooksRareToken(_looksRareToken).totalSupply());
 
         uint256 amountTokensToBeMinted;
 
