@@ -3,13 +3,11 @@ pragma solidity ^0.8.13;
 
 import {SafeTransferLib} from "../lib/solady/src/utils/SafeTransferLib.sol";
 import {ILooksRareToken} from "../interfaces/ILookRareToken.sol";
-import {IERC20} from "../interfaces/IERC20.sol";
-import {Test, console} from "forge-std/Test.sol";
 
 /**
- * @title TokenDistributor
- * @notice It handles the distribution of LOOKS token.
- * It auto-adjusts block rewards over a set number of periods.
+ * @title TokenDistributorOptimized
+ * @notice A smart contract for distributing staking rewards efficiently.
+ * @dev Uses SafeTransferLib for secure token transfers and minimizes gas costs.
  */
 contract TokenDistributorOptimized {
     using SafeTransferLib for address;
@@ -65,6 +63,16 @@ contract TokenDistributorOptimized {
         _status = _NOT_ENTERED;
     }
 
+    /**
+     * @notice Initializes the contract with staking and reward details.
+     * @param _tokenLooksRare The LooksRare token contract.
+     * @param _tokenSplitter The address of the reward splitter.
+     * @param _rewardsPerBlockForStaking The reward per block for staking.
+     * @param _rewardsPerBlockForOthers The reward per block for non-staking users.
+     * @param _periodLengthesInBlocks The length of each reward period in blocks.
+     * @param _startBlock The block number at which the staking starts.
+     * @param _numberPeriods The number of reward periods.
+     */
     constructor(
         ILooksRareToken _tokenLooksRare,
         address _tokenSplitter,
@@ -87,6 +95,10 @@ contract TokenDistributorOptimized {
         NUMBER_PERIODS = _numberPeriods;
     }
 
+    /**
+     * @notice Allows users to stake tokens and claim pending rewards.
+     * @param amount The amount of tokens to deposit.
+     */
     function deposit(uint256 amount) external nonReentrant {
         require(amount > 0, "Deposit: Amount must be > 0");
 
@@ -192,6 +204,11 @@ contract TokenDistributorOptimized {
         emit Withdraw(msg.sender, amountToTransfer, pendingRewards);
     }
 
+    /**
+     * @notice Calculates pending rewards for a user.
+     * @param user The address of the user.
+     * @return reward The amount of pending rewards.
+     */
     function calculatePendingRewards(address user) external view returns (uint256 reward) {
         uint256 blockNumber = block.number;
         uint256 _lastRewardBlock = lastRewardBlock;
@@ -311,6 +328,12 @@ contract TokenDistributorOptimized {
         emit NewRewardsPerBlock(_currentPhase, _newStartBlock, rewardPerBlockForStaking, rewardPerBlockForOthers);
     }
 
+    /**
+     * @notice Calculates the reward multiplier for a given period.
+     * @param from The starting block.
+     * @param to The ending block.
+     * @return multiplier The calculated reward multiplier based on the staking duration.
+     */
     function _getMultiplier(uint256 from, uint256 to) internal view returns (uint256 multiplier) {
         if (to <= endBlock) {
             multiplier = to - from;
