@@ -55,8 +55,11 @@ contract TokenDistributorOptimized {
     );
     event Withdraw(address indexed user, uint256 amount, uint256 harvestedAmount);
 
+    error ReentrancyGuard();
+    error InvalidAmount();
+
     modifier nonReentrant() {
-        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+        if (_status == _ENTERED) revert ReentrancyGuard();
 
         _status = _ENTERED;
         _;
@@ -100,7 +103,7 @@ contract TokenDistributorOptimized {
      * @param amount The amount of tokens to deposit.
      */
     function deposit(uint256 amount) external nonReentrant {
-        require(amount > 0, "Deposit: Amount must be > 0");
+        if (amount < 1) revert InvalidAmount();
 
         _updatePool();
 
@@ -160,7 +163,7 @@ contract TokenDistributorOptimized {
      */
     function withdraw(uint256 amount) external nonReentrant {
         uint256 userAmount = userInfo[msg.sender].amount;
-        require((userAmount >= amount) && (amount > 0), "Withdraw: Amount must be > 0 or lower than user balance");
+        if ((userAmount < amount) || (amount < 1)) revert InvalidAmount();
         uint256 _accTokenPerShare = accTokenPerShare;
 
         _updatePool();
@@ -184,7 +187,7 @@ contract TokenDistributorOptimized {
      */
     function withdrawAll() external nonReentrant {
         uint256 userAmount = userInfo[msg.sender].amount;
-        require(userAmount > 0, "Withdraw: Amount must be > 0");
+        if (userAmount < 1) revert InvalidAmount();
 
         // Update pool
         _updatePool();
